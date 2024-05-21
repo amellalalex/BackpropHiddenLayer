@@ -452,7 +452,8 @@ template<int L, int N> void NeuralNet<L, N>::BackpropWith(
     /* Apply Corrections to Output Layer */
     ((NeuralLayer<N,N>)this->layers.back()).LearnWithExpected(
         inputs,
-        expecteds 
+        expecteds,
+        learning_rate
     );
 
     /* For remaining layers, apply backprop */
