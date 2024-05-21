@@ -9,6 +9,10 @@ float sigmoid(float x) {
     return 1.0f / (1.0f + std::exp(-x));
 }
 
+float sigmoid_prime(float x) {
+    return (std::exp(-x) / std::pow( 1.0f + std::exp(-x) , 2.0f));
+}
+
 // Returns the instantaneous error energy xi_j(n)
 // for the neuron j having error value e_j(n)
 // \xi_j(n) = (1/2) * e_j(n)^2.
