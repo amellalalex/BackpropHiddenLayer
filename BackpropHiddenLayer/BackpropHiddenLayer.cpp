@@ -18,7 +18,7 @@ float xi(float e) {
 
 // Perceptron<# Inputs>
 template<int I> class Perceptron {
-        static_assert(I > 0, "Invalid Perceptron # of Inputs");
+    static_assert(I > 0, "Invalid Perceptron # of Inputs");
 public:
     Perceptron(void);
 
@@ -64,10 +64,10 @@ float Perceptron<I>::ErrorEnergyOf(
 }
 
 template<int N, int I> class NeuralLayer {
-        static_assert(
-                N > 0 && I > 0, 
-                "Invalid NeuralLayer # of Neurons OR # of Inputs"
-        );
+    static_assert(
+        N > 0 && I > 0, 
+        "Invalid NeuralLayer # of Neurons OR # of Inputs"
+    );
 public:
     Eigen::Vector<float, N> Evaluate(Eigen::Vector<float, I>& inputs) const;
 
@@ -120,10 +120,10 @@ float NeuralLayer<N, I>::TotalErrorEnergyOf(
 // template <# of layers, # of Neurons/Layer>
 // NOTE: # of Neurons/Layer == # of Inputs/Neuron
 template<int L, int N> class NeuralNet {
-        static_assert(
-                L > 0 && N > 0, 
-                "Invalid NeuralNet # of Layers OR # of Neurons"
-        );
+    static_assert(
+        L > 0 && N > 0, 
+        "Invalid NeuralNet # of Layers OR # of Neurons"
+    );
 public:
     Eigen::Vector<float, N> Evaluate(Eigen::Vector<float, N>& inputs) const;
     Eigen::Vector<float, N> ErrorOf(
