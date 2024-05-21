@@ -42,6 +42,16 @@ public:
         Eigen::Vector<float, I>& k_weights
     );
 
+    float GetLocalGradientAsOutput(
+            Eigen::Vector<float, I>& inputs, 
+            float expected
+    ) const;
+    float GetLocalGradientForBackprop(
+            Eigen::Vector<float, I>& inputs,
+            float k_local_gradient,
+            Eigen::Vector<float, I>& k_weights
+    ) const;
+
     Eigen::Vector<float, I> GetWeights(void) const;
 
 private:
@@ -175,6 +185,25 @@ void Perceptron<I>::LearnWithBackprop(
 
     /* Apply weight corrections */
     this->weights += weight_corrections;
+}
+
+// Computes the local gradient at this neuron ASSUMING
+// it belongs to the output layer of the Network.
+template<int I>
+float Perceptron<I>::GetLocalGradientAsOutput(
+        Eigen::Vector<float, I>& inputs, 
+        float expected
+) const {
+    return this->local_gradient(inputs, expected);
+}
+
+template<int I>
+float Perceptron<I>::GetLocalGradientForBackprop(
+        Eigen::Vector<float, I>& inputs,
+        float k_local_gradient,
+        Eigen::Vector<float, I>& k_weights
+) const {
+    return this->local_gradient(inputs, k_local_gradient, k_weights);
 }
 
 template<int I>
