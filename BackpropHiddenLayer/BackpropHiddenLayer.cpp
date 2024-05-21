@@ -178,6 +178,7 @@ int main(void) {
 	NeuralNet<num_layers, num_neurons> NET;
 	std::cout << "NET.Evaluate(input) = " << std::endl << NET.Evaluate(input) << std::endl;
 	std::cout << "NET.ErrorOf(input, expected) = " << std::endl << NET.ErrorOf(input, expected) << std::endl;
+	std::cout << "NET.TotalErrorEnergyOf(input, expected) = " << std::endl << NET.TotalErrorEnergyOf(input, expected) << std::endl;
 
     return 0;
 }
