@@ -30,6 +30,12 @@ public:
     float ErrorOf(Eigen::Vector<float, I>& inputs, float expected) const;
     float ErrorEnergyOf(Eigen::Vector<float, I>& inputs, float expected) const;
 
+    void LearnWithExpected(
+        Eigen::Vector<float, I>& inputs, 
+        float expected,
+        float learning_rate 
+    );
+
 private:
     Eigen::Vector<float, I> weights;
     float sum_of_products(Eigen::Vector<float, I>& inputs) const; // AKA v(n)
@@ -69,6 +75,33 @@ float Perceptron<I>::ErrorEnergyOf(
     Eigen::Vector<float, I>& inputs, float expected
 ) const {
     return xi(this->ErrorOf(inputs, expected));
+}
+
+// Applies weight changes to this neuron by 
+// locally calculating the error based on 
+// the expected value and the evaluated 
+// inputs, factoring in the provided learning
+// rate in the process.
+// \Delta w_j_i(n) = \eta * \delta_j(n) * y_i(n)
+template<int I>
+void Perceptron<I>::LearnWithExpected(
+    Eigen::Vector<float, I>& inputs, 
+    float expected,
+    float learning_rate 
+) {
+    /* Start with local gradient */
+    float local_gradient = 
+        this->ErrorOf(inputs, expected) 
+            * sigmoid_prime(this->sum_of_products(inputs));
+
+    /* Calculate weight corrections */
+    Eigen::Vector<float, I> weight_corrections;
+    for(int x = 0; x < inputs.size(); x++) {
+        weight_corrections(x) = learning_rate * local_gradient * inputs(x);
+    }
+
+    /* Apply weight corrections */
+    this->weights += weight_corrections;
 }
 
 template<int N, int I> class NeuralLayer {
