@@ -248,4 +248,18 @@ int main(void) {
 *  OR in English:
 * ---- local gradient = error value at neuron j * slope of activation function AT j'th neuron internal signal
 *                                                                                 AKA the sum of products neuron j
+*
+* NOTE: So far, we have not addressed the credit-assignment problem
+* -- IOW, this only works for the output layer.
+*
+* --- Where j is a hidden neuron and k is a subsequent output neuron,
+* ---- delta_j(n) = \phi'_j(v_j(n)) * SUM_k( \delta_k(n) * w_k_j(n) )
+*  OR in English:
+* ---- local gradient = slope of the activation function AT the internal signal value of neuron j
+*                               * the SUM OF all k neurons ( local gradient at neuron k * the weight
+*                                                           for the j'th input into the k'th neuron )
+*  WHERE
+* ---- \Delta w_j_i(n) = \eta * \delta_j(n) * y_i(n)
+*  OR in English:
+* ---- Weight correction = learning rate * local gradient * input signal i to neuron j
 */
