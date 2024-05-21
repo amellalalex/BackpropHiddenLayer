@@ -120,6 +120,10 @@ public:
         Eigen::Vector<float, N>& inputs,
         Eigen::Vector<float, N>& expecteds
     );
+    float TotalErrorEnergyOf(
+        Eigen::Vector<float, N>& inputs,
+        Eigen::Vector<float, N>& expecteds
+    );
 
 private:
     std::array<NeuralLayer<N, N>, L> layers;
@@ -144,6 +148,21 @@ Eigen::Vector<float, N> NeuralNet<L, N>::ErrorOf(
     Eigen::Vector<float, N>& expecteds
 ) {
     return (expecteds - this->Evaluate(inputs));
+}
+
+// Returns the total instantaneous error energy
+// of the _output layer_ of the network.
+template<int L, int N>
+float NeuralNet<L, N>::TotalErrorEnergyOf(
+    Eigen::Vector<float, N>& inputs,
+    Eigen::Vector<float, N>& expecteds
+) {
+    if (this->layers.size() > 0) {
+        return ((NeuralLayer<N, N>)this->layers.back()).TotalErrorEnergyOf(inputs, expecteds);
+    }
+    else {
+        return 0.0f;
+    }
 }
 
 int main(void) {
