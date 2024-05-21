@@ -43,6 +43,8 @@ public:
         Eigen::Vector<float, I>& k_weights
     );
 
+    Eigen::Vector<float, I> GetWeights(void) const;
+
 private:
     Eigen::Vector<float, I> weights;
     float sum_of_products(Eigen::Vector<float, I>& inputs) const; // AKA v(n)
@@ -145,6 +147,11 @@ void Perceptron<I>::LearnWithBackprop(
 
     /* Apply weight corrections */
     this->weights += weight_corrections;
+}
+
+template<int I>
+Eigen::Vector<float, I> Perceptron<I>::GetWeights(void) const {
+    return this->weights;
 }
 
 template<int N, int I> class NeuralLayer {
