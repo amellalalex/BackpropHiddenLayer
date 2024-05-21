@@ -35,7 +35,6 @@ public:
         float expected,
         float learning_rate 
     );
-
     void LearnWithBackprop(
         Eigen::Vector<float, I>& inputs,
         float                    learning_rate,
