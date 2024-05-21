@@ -463,7 +463,7 @@ template<int L, int N> void NeuralNet<L, N>::BackpropWith(
     /* Treat next_*** as persistence state for (x+1)'th */
 
     /* Note that we are excluding the output layer */
-    for(int x = this->layers.size()-1; x >= 0; x--) {
+    for(int x = this->layers.size()-2; x >= 0; x--) {
         /* Save current layer's characteristics */
         next_local_gradients = 
             ((NeuralLayer<N,N>)this->layers[x]).GetLocalGradientsForBackprop(
