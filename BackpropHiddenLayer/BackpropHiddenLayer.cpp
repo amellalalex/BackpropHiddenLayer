@@ -180,11 +180,11 @@ int main(void) {
     Eigen::Vector<float, num_neurons> input = { 1, 0, 0 };
     Eigen::Vector<float, num_neurons> expected = { 0, 0, 1 };
 
-	/* Eval */
-	NeuralNet<num_layers, num_neurons> NET;
-	std::cout << "NET.Evaluate(input) = " << std::endl << NET.Evaluate(input) << std::endl;
-	std::cout << "NET.ErrorOf(input, expected) = " << std::endl << NET.ErrorOf(input, expected) << std::endl;
-	std::cout << "NET.TotalErrorEnergyOf(input, expected) = " << std::endl << NET.TotalErrorEnergyOf(input, expected) << std::endl;
+    /* Eval */
+    NeuralNet<num_layers, num_neurons> NET;
+    std::cout << "NET.Evaluate(input) = " << std::endl << NET.Evaluate(input) << std::endl;
+    std::cout << "NET.ErrorOf(input, expected) = " << std::endl << NET.ErrorOf(input, expected) << std::endl;
+    std::cout << "NET.TotalErrorEnergyOf(input, expected) = " << std::endl << NET.TotalErrorEnergyOf(input, expected) << std::endl;
 
     return 0;
 }
