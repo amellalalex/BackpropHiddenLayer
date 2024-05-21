@@ -214,4 +214,32 @@ int main(void) {
 * ---- 2. The computed estimate of a gradient vector being the gradient of the error
 *         surface with respect to the weights connected to the input of the neuron.
 *         This is necessary for the backward-pass through the network (and weight updates).
+*
+* --- Doing a bit of partial-derivative math (as shown in Simon Haykin p.163):
+* ---- d_partial(\xi(n)) / d_partial(w_j_i(n)) = - e_j(n) * \phi'_j(v_j(n)) * y_i(n)
+*  OR in English:
+* ---- partial der. of total error energy WRT partial der. of weight for i'th input into j'th neuron is 
+*      equal to the negative error value of j'th neuron times the slope of the activation function at the
+*      NET's internal signal value (sum of products of weights x inputs) times the i'th input signal 
+*                                                                 (AKA output of i'th neuron of prev layer)
+*
+* --- Okay, so, with this gradient value, we may obtain the weight-correction for the j'th neuron with:
+* ---- \Delta w_j_i(n) = \eta * d_partial(\xi(n)) / d_partial(w_j_i(n))
+*   OR in English:
+* ---- The change in weight at jth neuron for its i'th input = the learning rate * gradient descent value
+*
+* --- Paying close attention to the gradient descent formula reveals that the only change in value for
+*     differing i values (that is, for a different input) is y_i(n). In other words, for a single neuron,
+*     the application of its 'lesson' can be generalized across all inputs under the 'local error' or 
+*     'local gradient':
+* ---- \Delta w_j_i(n) = \eta * \delta_j(n) * y_i(n)
+*       where \delta_j(n) is the local gradient (or local error)
+*  OR in English:
+* ----- The change in weight at neuron j for input i = the learning rate * local gradient * i'th input signal
+* 
+* --- The local gradient value may be computed on a per-neuron basis as per the following:
+* ---- \delta_j(n) = e_j(n) * \phi'_j(v_j(n))
+*  OR in English:
+* ---- local gradient = error value at neuron j * slope of activation function AT j'th neuron internal signal
+*                                                                                 AKA the sum of products neuron j
 */
