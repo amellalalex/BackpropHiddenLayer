@@ -229,6 +229,11 @@ public:
         Eigen::Vector<float, N>& expecteds
     ) const;
 
+    Eigen::Vector<float, N> GetLocalGradientsAsOutput(
+        Eigen::Vector<float, I>& inputs,
+        Eigen::Vector<float, N>& expecteds
+    ) const;
+
 private:
     std::array<Perceptron<I>, N> neurons;
 };
@@ -263,6 +268,22 @@ float NeuralLayer<N, I>::TotalErrorEnergyOf(
         sum += ((Perceptron<I>) this->neurons[x]).ErrorEnergyOf(inputs, expecteds(x));
     }
     return sum;
+}
+
+template<int N, int I>
+Eigen::Vector<float, N> NeuralLayer<N, I>::GetLocalGradientsAsOutput(
+    Eigen::Vector<float, I>& inputs,
+    Eigen::Vector<float, N>& expecteds
+) const {
+    Eigen::Vector<float, N> local_gradients;
+    for(int x = 0; x < this->neurons.size(); x++) {
+        local_gradients(x) = 
+            ((Perceptron<I>)this->neurons[x]).GetLocalGradientAsOutput(
+                inputs, 
+                expecteds(x)
+            );
+    }
+    return local_gradients;
 }
 
 // template <# of layers, # of Neurons/Layer>
