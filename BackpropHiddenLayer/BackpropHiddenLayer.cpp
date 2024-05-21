@@ -234,6 +234,13 @@ public:
         Eigen::Vector<float, N>& expecteds,
         float learning_rate 
     );
+    void LearnWithBackprop(
+        Eigen::Vector<float, I>&    inputs,
+        float                       learning_rate,
+        Eigen::Vector<float, N>&    k_local_gradients,
+        Eigen::Matrix<float, N, I>& k_weightss
+    );
+
     Eigen::Vector<float, N> GetLocalGradientsAsOutput(
         Eigen::Vector<float, I>& inputs,
         Eigen::Vector<float, N>& expecteds
@@ -294,6 +301,23 @@ void NeuralLayer<N,I>::LearnWithExpected(
             inputs,
             expecteds(x),
             learning_rate
+        );
+    }
+}
+
+template<int N, int I>
+void NeuralLayer<N,I>::LearnWithBackprop(
+    Eigen::Vector<float, I>&    inputs,
+    float                       learning_rate,
+    Eigen::Vector<float, N>&    k_local_gradients,
+    Eigen::Matrix<float, N, I>& k_weightss
+) {
+    for(int x = 0; x < this->neurons.size(); x++) {
+        ((Perceptron<I>)this->neurons[x]).LearnWithBackprop(
+            inputs,
+            learning_rate,
+            k_local_gradients(x),
+            k_weightss(x)
         );
     }
 }
