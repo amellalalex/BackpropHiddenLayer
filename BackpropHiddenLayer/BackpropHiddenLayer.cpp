@@ -183,18 +183,8 @@ void Perceptron<I>::LearnWithBackprop(
         weight_corrections(x) = learning_rate * local_gradient * inputs(x);
     }
 
-    /* DEBUG */
-    std::cout << "We are about to apply the following weight corrections:" << std::endl;
-    std::cout << weight_corrections << std::endl << std::endl;
-    std::cout << "Weights BEFORE the correction:" << std::endl;
-    std::cout << this->weights << std::endl << std::endl;
-
     /* Apply weight corrections */
     this->weights += weight_corrections;
-
-    /* DEBUG */
-    std::cout << "Weights AFTER the correction:" << std::endl;
-    std::cout << this->weights << std::endl << std::endl;
 }
 
 // Computes the local gradient at this neuron ASSUMING
