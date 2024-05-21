@@ -434,6 +434,22 @@ int main(void) {
     std::cout << "NET.ErrorOf(input, expected) = " << std::endl << NET.ErrorOf(input, expected) << std::endl;
     std::cout << "NET.TotalErrorEnergyOf(input, expected) = " << std::endl << NET.TotalErrorEnergyOf(input, expected) << std::endl;
 
+    /* EigenTest */
+    Eigen::Vector<float, 3> A {
+        { 1, 2, 3 }
+    };
+    Eigen::Vector<float, 3> B {
+        { 4, 5, 6 }
+    };
+    Eigen::Matrix<float, 2, 3> C;
+
+    C.row(0) = A;
+    C.row(1) = B;
+
+    std::cout << "Vector A = " << A << std::endl;
+    std::cout << "Vector B = " << B << std::endl;
+    std::cout << "Matrix C = " << std::endl << C << std::endl;
+
     return 0;
 }
 
