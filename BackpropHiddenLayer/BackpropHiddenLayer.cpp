@@ -313,11 +313,14 @@ void NeuralLayer<N,I>::LearnWithBackprop(
     Eigen::Matrix<float, N, I>& k_weightss
 ) {
     for(int x = 0; x < this->neurons.size(); x++) {
+        /* Get k_weights for this neuron */
+        Eigen::Vector<float, I> k_weights = k_weightss.row(x);
+        /* Apply backprop learning to this layer */
         ((Perceptron<I>)this->neurons[x]).LearnWithBackprop(
             inputs,
             learning_rate,
             k_local_gradients(x),
-            k_weightss(x)
+            k_weights
         );
     }
 }
@@ -346,11 +349,14 @@ Eigen::Vector<float, N> NeuralLayer<N, I>::GetLocalGradientsForBackprop(
 ) const {
     Eigen::Vector<float, N> local_gradients;
     for(int x = 0; x < this->neurons.size(); x++) {
+        /* Get k_weights for this neurons */
+        Eigen::Vector<float, I> k_weights = k_weightss.row(x);
+        /* Get local gradients for this layer */
         local_gradients(x) = 
             ((Perceptron<I>)this->neurons[x]).GetLocalGradientForBackprop(
                 inputs,
                 k_local_gradients(x),
-                k_weightss(x)
+                k_weights
             );
     }
     return local_gradients;
