@@ -374,14 +374,22 @@ template<int L, int N> class NeuralNet {
     );
 public:
     Eigen::Vector<float, N> Evaluate(Eigen::Vector<float, N>& inputs) const;
+
     Eigen::Vector<float, N> ErrorOf(
         Eigen::Vector<float, N>& inputs,
         Eigen::Vector<float, N>& expecteds
     ) const;
+
     float TotalErrorEnergyOf(
         Eigen::Vector<float, N>& inputs,
         Eigen::Vector<float, N>& expecteds
     ) const;
+
+    void BackpropWith(
+        Eigen::Vector<float, N>& inputs,
+        Eigen::Vector<float, N>& expecteds,
+        float learning_rate
+    );
 
 private:
     std::array<NeuralLayer<N, N>, L> layers;
@@ -417,6 +425,59 @@ float NeuralNet<L, N>::TotalErrorEnergyOf(
 ) const {
     return ((NeuralLayer<N, N>)this->layers.back()).TotalErrorEnergyOf(inputs, expecteds);
     /* There will always be at least 1 layer due to static assertion in class def */
+}
+
+template<int L, int N> void NeuralNet<L, N>::BackpropWith(
+        Eigen::Vector<float, N>& inputs,
+        Eigen::Vector<float, N>& expecteds,
+        float learning_rate
+) {
+    /* Save output layer characteristics */
+
+    Eigen::Vector<float, N> k_local_gradients = 
+        ((NeuralLayer<N,N>)this->layers.back()).GetLocalGradientsAsOutput(
+            inputs,
+            expecteds
+        );
+
+    Eigen::Matrix<float, N, N> k_weightss = 
+        ((NeuralLayer<N,N>)this->layers.back()).GetWeightss();
+
+    /* Apply Corrections to Output Layer */
+    ((NeuralLayer<N,N>)this->layers.back()).LearnWithExpected(
+        inputs,
+        expecteds 
+    );
+
+    /* For remaining layers, apply backprop */
+    Eigen::Vector<float, N> next_local_gradients = k_local_gradients;
+    Eigen::Matrix<float, N, N> next_weightss = k_weightss;
+    /* Treat k_*** as values to apply for x'th iteration */
+    /* Treat next_*** as persistence state for (x+1)'th */
+
+    /* Note that we are excluding the output layer */
+    for(int x = this->layers.size()-1; x >= 0; x--) {
+        /* Save current layer's characteristics */
+        next_local_gradients = 
+            ((NeuralLayer<N,N>)this->layers[x]).GetLocalGradientsForBackprop(
+                inputs,
+                k_local_gradients,
+                k_weightss
+            );
+        next_weightss = ((NeuralLayer<N,N>)this->layers[x]).GetWeightss();
+
+        /* Apply corrections using backprop */
+        ((NeuralLayer<N,N>)this->layers[x]).LearnWithBackprop(
+            inputs,
+            learning_rate,
+            k_local_gradients,
+            k_weightss
+        );
+
+        /* Update x'th iteration characteristics */
+        k_local_gradients = next_local_gradients;
+        k_weightss = next_weightss;
+    }
 }
 
 int main(void) {
