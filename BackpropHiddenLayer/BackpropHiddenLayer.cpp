@@ -32,7 +32,12 @@ public:
 
 private:
     Eigen::Vector<float, I> weights;
+    float sum_of_products(Eigen::Vector<float, I>& inputs) const; // AKA v(n)
 };
+
+template<int I> float Perceptron<I>::sum_of_products(Eigen::Vector<float, I>& inputs) const {
+    return inputs.dot(weights);
+}
 
 // Randomly initializes the weights of the perceptron
 template<int I> Perceptron<I>::Perceptron(void) {
@@ -44,8 +49,7 @@ template<int I> Perceptron<I>::Perceptron(void) {
 // Passes output through activation function (sigmoid).
 // Returns neuron's scalar output value.
 template<int I> float Perceptron<I>::Evaluate(Eigen::Vector<float, I>& inputs) const {
-    float sum_of_products = inputs.dot(weights);
-    return sigmoid(sum_of_products);
+    return sigmoid(this->sum_of_products(inputs));
 }
 
 // Computes the error of the evaluated input WRT the
