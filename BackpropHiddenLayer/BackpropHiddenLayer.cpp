@@ -285,7 +285,7 @@ float NeuralLayer<N, I>::TotalErrorEnergyOf(
 ) const {
     float sum = 0;
     for (int x = 0; x < this->neurons.size(); x++) {
-        sum += ((Perceptron<I>) this->neurons[x]).ErrorEnergyOf(inputs, expecteds(x));
+        sum += this->neurons[x].ErrorEnergyOf(inputs, expecteds(x));
     }
     return sum;
 }
@@ -297,7 +297,7 @@ void NeuralLayer<N,I>::LearnWithExpected(
     float learning_rate 
 ) {
     for(int x = 0; x < this->neurons.size(); x++) {
-        ((Perceptron<I>)this->neurons[x]).LearnWithExpected(
+        this->neurons[x].LearnWithExpected(
             inputs,
             expecteds(x),
             learning_rate
@@ -316,7 +316,7 @@ void NeuralLayer<N,I>::LearnWithBackprop(
         /* Get k_weights for this neuron */
         Eigen::Vector<float, I> k_weights = k_weightss.row(x);
         /* Apply backprop learning to this layer */
-        ((Perceptron<I>)this->neurons[x]).LearnWithBackprop(
+        this->neurons[x].LearnWithBackprop(
             inputs,
             learning_rate,
             k_local_gradients(x),
@@ -333,7 +333,7 @@ Eigen::Vector<float, N> NeuralLayer<N, I>::GetLocalGradientsAsOutput(
     Eigen::Vector<float, N> local_gradients;
     for(int x = 0; x < this->neurons.size(); x++) {
         local_gradients(x) = 
-            ((Perceptron<I>)this->neurons[x]).GetLocalGradientAsOutput(
+            this->neurons[x].GetLocalGradientAsOutput(
                 inputs, 
                 expecteds(x)
             );
@@ -353,7 +353,7 @@ Eigen::Vector<float, N> NeuralLayer<N, I>::GetLocalGradientsForBackprop(
         Eigen::Vector<float, I> k_weights = k_weightss.row(x);
         /* Get local gradients for this layer */
         local_gradients(x) = 
-            ((Perceptron<I>)this->neurons[x]).GetLocalGradientForBackprop(
+            this->neurons[x].GetLocalGradientForBackprop(
                 inputs,
                 k_local_gradients(x),
                 k_weights
@@ -366,7 +366,7 @@ template<int N, int I>
 Eigen::Matrix<float, N, I> NeuralLayer<N, I>::GetWeightss(void) const {
     Eigen::Matrix<float, N, I> weightss;
     for(int x = 0; x < this->neurons.size(); x++) {
-        weightss.row(x) = ((Perceptron<I>)this->neurons[x]).GetWeights();
+        weightss.row(x) = this->neurons[x].GetWeights();
     }
     return weightss;
 }
@@ -429,7 +429,7 @@ float NeuralNet<L, N>::TotalErrorEnergyOf(
     Eigen::Vector<float, N>& inputs,
     Eigen::Vector<float, N>& expecteds
 ) const {
-    return ((NeuralLayer<N, N>)this->layers.back()).TotalErrorEnergyOf(inputs, expecteds);
+    return this->layers.back().TotalErrorEnergyOf(inputs, expecteds);
     /* There will always be at least 1 layer due to static assertion in class def */
 }
 
@@ -441,16 +441,16 @@ template<int L, int N> void NeuralNet<L, N>::BackpropWith(
     /* Save output layer characteristics */
 
     Eigen::Vector<float, N> k_local_gradients = 
-        ((NeuralLayer<N,N>)this->layers.back()).GetLocalGradientsAsOutput(
+        this->layers.back().GetLocalGradientsAsOutput(
             inputs,
             expecteds
         );
 
     Eigen::Matrix<float, N, N> k_weightss = 
-        ((NeuralLayer<N,N>)this->layers.back()).GetWeightss();
+        this->layers.back().GetWeightss();
 
     /* Apply Corrections to Output Layer */
-    ((NeuralLayer<N,N>)this->layers.back()).LearnWithExpected(
+    this->layers.back().LearnWithExpected(
         inputs,
         expecteds,
         learning_rate
@@ -466,15 +466,15 @@ template<int L, int N> void NeuralNet<L, N>::BackpropWith(
     for(int x = this->layers.size()-2; x >= 0; x--) {
         /* Save current layer's characteristics */
         next_local_gradients = 
-            ((NeuralLayer<N,N>)this->layers[x]).GetLocalGradientsForBackprop(
+            this->layers[x].GetLocalGradientsForBackprop(
                 inputs,
                 k_local_gradients,
                 k_weightss
             );
-        next_weightss = ((NeuralLayer<N,N>)this->layers[x]).GetWeightss();
+        next_weightss = this->layers[x].GetWeightss();
 
         /* Apply corrections using backprop */
-        ((NeuralLayer<N,N>)this->layers[x]).LearnWithBackprop(
+        this->layers[x].LearnWithBackprop(
             inputs,
             learning_rate,
             k_local_gradients,
