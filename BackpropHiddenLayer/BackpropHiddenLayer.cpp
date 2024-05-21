@@ -234,6 +234,12 @@ public:
         Eigen::Vector<float, N>& expecteds
     ) const;
 
+    Eigen::Vector<float, N> GetLocalGradientsForBackprop(
+        Eigen::Vector<float, I>& inputs,
+        Eigen::Vector<float, N>& k_local_gradients,
+        Eigen::Matrix<float, N, I> k_weightss
+    ) const;
+
 private:
     std::array<Perceptron<I>, N> neurons;
 };
@@ -285,6 +291,25 @@ Eigen::Vector<float, N> NeuralLayer<N, I>::GetLocalGradientsAsOutput(
     }
     return local_gradients;
 }
+
+template<int N, int I>
+Eigen::Vector<float, N> NeuralLayer<N, I>::GetLocalGradientsForBackprop(
+    Eigen::Vector<float, I>& inputs,
+    Eigen::Vector<float, N>& k_local_gradients,
+    Eigen::Matrix<float, N, I> k_weightss
+) const {
+    Eigen::Vector<float, N> local_gradients;
+    for(int x = 0; x < this->neurons.size(); x++) {
+        local_gradients(x) = 
+            ((Perceptron<I>)this->neurons[x]).GetLocalGradientForBackprop(
+                inputs,
+                k_local_gradients(x),
+                k_weightss(x)
+            );
+    }
+    return local_gradients;
+}
+
 
 // template <# of layers, # of Neurons/Layer>
 // NOTE: # of Neurons/Layer == # of Inputs/Neuron
