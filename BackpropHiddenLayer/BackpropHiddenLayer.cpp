@@ -89,8 +89,7 @@ private:
 template<int N, int I>
 Eigen::Vector<float, N> NeuralLayer<N, I>::Evaluate(
     Eigen::Vector<float, I>& inputs
-)
-{
+) const {
     Eigen::Vector<float, N> outputs;
     for (int x = 0; x < this->neurons.size(); x++) {
         outputs(x) = this->neurons[x].Evaluate(inputs);
@@ -102,7 +101,7 @@ template<int N, int I>
 Eigen::Vector<float, N> NeuralLayer<N, I>::ErrorOf(
     Eigen::Vector<float, I>& inputs,
     Eigen::Vector<float, N>& expecteds
-) {
+) const {
     return (expecteds - this->Evaluate(inputs));
 }
 
@@ -110,7 +109,7 @@ template<int N, int I>
 float NeuralLayer<N, I>::TotalErrorEnergyOf(
     Eigen::Vector<float, I>& inputs,
     Eigen::Vector<float, N>& expecteds
-) {
+) const {
     float sum = 0;
     for (int x = 0; x < this->neurons.size(); x++) {
         sum += ((Perceptron<I>) this->neurons[x]).ErrorEnergyOf(inputs, expecteds(x));
@@ -121,16 +120,20 @@ float NeuralLayer<N, I>::TotalErrorEnergyOf(
 // template <# of layers, # of Neurons/Layer>
 // NOTE: # of Neurons/Layer == # of Inputs/Neuron
 template<int L, int N> class NeuralNet {
+        static_assert(
+                L > 0 && N > 0, 
+                "Invalid NeuralNet # of Layers OR # of Neurons"
+        );
 public:
-    Eigen::Vector<float, N> Evaluate(Eigen::Vector<float, N>& inputs);
+    Eigen::Vector<float, N> Evaluate(Eigen::Vector<float, N>& inputs) const;
     Eigen::Vector<float, N> ErrorOf(
         Eigen::Vector<float, N>& inputs,
         Eigen::Vector<float, N>& expecteds
-    );
+    ) const;
     float TotalErrorEnergyOf(
         Eigen::Vector<float, N>& inputs,
         Eigen::Vector<float, N>& expecteds
-    );
+    ) const;
 
 private:
     std::array<NeuralLayer<N, N>, L> layers;
