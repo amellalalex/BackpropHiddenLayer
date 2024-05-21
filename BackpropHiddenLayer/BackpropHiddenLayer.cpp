@@ -240,6 +240,8 @@ public:
         Eigen::Matrix<float, N, I> k_weightss
     ) const;
 
+    Eigen::Matrix<float, N, I> GetWeightss(void) const;
+
 private:
     std::array<Perceptron<I>, N> neurons;
 };
@@ -310,6 +312,14 @@ Eigen::Vector<float, N> NeuralLayer<N, I>::GetLocalGradientsForBackprop(
     return local_gradients;
 }
 
+template<int N, int I> 
+Eigen::Matrix<float, N, I> NeuralLayer<N, I>::GetWeightss(void) const {
+    Eigen::Matrix<float, N, I> weightss;
+    for(int x = 0; x < this->neurons.size(); x++) {
+        weightss(x) = ((Perceptron<I>)this->neurons[x]).GetWeights();
+    }
+    return weightss;
+}
 
 // template <# of layers, # of Neurons/Layer>
 // NOTE: # of Neurons/Layer == # of Inputs/Neuron
