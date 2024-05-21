@@ -36,6 +36,13 @@ public:
         float learning_rate 
     );
 
+    void LearnWithBackprop(
+        Eigen::Vector<float, I>& inputs,
+        float                    learning_rate,
+        float                    k_local_gradient,
+        Eigen::Vector<float, I>& k_weights
+    );
+
 private:
     Eigen::Vector<float, I> weights;
     float sum_of_products(Eigen::Vector<float, I>& inputs) const; // AKA v(n)
@@ -93,6 +100,42 @@ void Perceptron<I>::LearnWithExpected(
     float local_gradient = 
         this->ErrorOf(inputs, expected) 
             * sigmoid_prime(this->sum_of_products(inputs));
+
+    /* Calculate weight corrections */
+    Eigen::Vector<float, I> weight_corrections;
+    for(int x = 0; x < inputs.size(); x++) {
+        weight_corrections(x) = learning_rate * local_gradient * inputs(x);
+    }
+
+    /* Apply weight corrections */
+    this->weights += weight_corrections;
+}
+
+// Applies weight changes to this neuron by 
+// deriving the local gradient from the k neuron
+// 'ahead' of it, using its k_local_gradient and
+// k_weights as it would be done if this neuron
+// were part of a hidden layer. Using the local
+// gradient, weight updates are applied provided
+// the inputs to this neuron.
+template<int I>
+void Perceptron<I>::LearnWithBackprop(
+    Eigen::Vector<float, I>& inputs,
+    float                    learning_rate,
+    float                    k_local_gradient,
+    Eigen::Vector<float, I>& k_weights
+) {
+    /* Compute SUM OF ( \delta_k(n) * w_k_j(n) ) */
+    float sum_of_k_local_gradient_and_weights = 0.0f;
+    for(int x = 0; x < k_weights.cols(); x++) {
+        sum_of_k_local_gradient_and_weights += k_local_gradient * k_weights(x);
+    }
+
+    /* Compute local gradient */
+    float local_gradient = 
+        sigmoid_prime(this->sum_of_products(inputs))
+            * sum_of_k_local_gradient_and_weights
+        ;
 
     /* Calculate weight corrections */
     Eigen::Vector<float, I> weight_corrections;
