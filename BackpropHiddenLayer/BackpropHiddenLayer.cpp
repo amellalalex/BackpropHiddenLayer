@@ -18,12 +18,13 @@ float xi(float e) {
 
 // Perceptron<# Inputs>
 template<int I> class Perceptron {
+        static_assert(I > 0, "Invalid Perceptron # of Inputs");
 public:
     Perceptron(void);
 
-    float Evaluate(Eigen::Vector<float, I>& inputs);
-    float ErrorOf(Eigen::Vector<float, I>& inputs, float expected);
-    float ErrorEnergyOf(Eigen::Vector<float, I>& inputs, float expected);
+    float Evaluate(Eigen::Vector<float, I>& inputs) const;
+    float ErrorOf(Eigen::Vector<float, I>& inputs, float expected) const;
+    float ErrorEnergyOf(Eigen::Vector<float, I>& inputs, float expected) const;
 
 private:
     Eigen::Vector<float, I> weights;
@@ -38,7 +39,7 @@ template<int I> Perceptron<I>::Perceptron(void) {
 // 'Excites' neuron using fitting input vector.
 // Passes output through activation function (sigmoid).
 // Returns neuron's scalar output value.
-template<int I> float Perceptron<I>::Evaluate(Eigen::Vector<float, I>& inputs) {
+template<int I> float Perceptron<I>::Evaluate(Eigen::Vector<float, I>& inputs) const {
     float sum_of_products = inputs.dot(weights);
     return sigmoid(sum_of_products);
 }
@@ -48,7 +49,7 @@ template<int I> float Perceptron<I>::Evaluate(Eigen::Vector<float, I>& inputs) {
 template<int I> float Perceptron<I>::ErrorOf(
     Eigen::Vector<float, I>& inputs, 
     float expected
-) {
+) const {
     return (expected - this->Evaluate(inputs));
 }
 
@@ -58,21 +59,27 @@ template<int I> float Perceptron<I>::ErrorOf(
 template<int I> 
 float Perceptron<I>::ErrorEnergyOf(
     Eigen::Vector<float, I>& inputs, float expected
-) {
+) const {
     return xi(this->ErrorOf(inputs, expected));
 }
 
 template<int N, int I> class NeuralLayer {
+        static_assert(
+                N > 0 && I > 0, 
+                "Invalid NeuralLayer # of Neurons OR # of Inputs"
+        );
 public:
-    Eigen::Vector<float, N> Evaluate(Eigen::Vector<float, I>& inputs);
+    Eigen::Vector<float, N> Evaluate(Eigen::Vector<float, I>& inputs) const;
+
     Eigen::Vector<float, N> ErrorOf(
         Eigen::Vector<float, I>& inputs, 
         Eigen::Vector<float, N>& expecteds
-    );
+    ) const;
+
     float TotalErrorEnergyOf(
         Eigen::Vector<float, I>& inputs,
         Eigen::Vector<float, N>& expecteds
-    );
+    ) const;
 
 private:
     std::array<Perceptron<I>, N> neurons;
