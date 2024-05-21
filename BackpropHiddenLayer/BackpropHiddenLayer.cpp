@@ -69,6 +69,10 @@ public:
         Eigen::Vector<float, I>& inputs, 
         Eigen::Vector<float, N>& expecteds
     );
+    float TotalErrorEnergyOf(
+        Eigen::Vector<float, I>& inputs,
+        Eigen::Vector<float, N>& expecteds
+    );
 
 private:
     std::array<Perceptron<I>, N> neurons;
@@ -93,6 +97,18 @@ Eigen::Vector<float, N> NeuralLayer<N, I>::ErrorOf(
     Eigen::Vector<float, N>& expecteds
 ) {
     return (expecteds - this->Evaluate(inputs));
+}
+
+template<int N, int I>
+float NeuralLayer<N, I>::TotalErrorEnergyOf(
+    Eigen::Vector<float, I>& inputs,
+    Eigen::Vector<float, N>& expecteds
+) {
+    float sum = 0;
+    for (int x = 0; x < this->neurons.size(); x++) {
+        sum += ((Perceptron<I>) this->neurons[x]).ErrorEnergyOf(inputs, expecteds(x));
+    }
+    return sum;
 }
 
 // template <# of layers, # of Neurons/Layer>
