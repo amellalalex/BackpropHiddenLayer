@@ -23,6 +23,7 @@ public:
 
     float Evaluate(Eigen::Vector<float, I>& inputs);
     float ErrorOf(Eigen::Vector<float, I>& inputs, float expected);
+    float ErrorEnergyOf(Eigen::Vector<float, I>& inputs, float expected);
 
 private:
     Eigen::Vector<float, I> weights;
@@ -49,6 +50,16 @@ template<int I> float Perceptron<I>::ErrorOf(
     float expected
 ) {
     return (expected - this->Evaluate(inputs));
+}
+
+// Computes the instantaneous error energy of the
+// evaluated input WRT the expected value.
+// \xi_j(n) = (1/2) * e_j(n)^2.
+template<int I> 
+float Perceptron<I>::ErrorEnergyOf(
+    Eigen::Vector<float, I>& inputs, float expected
+) {
+    return xi(this->ErrorOf(inputs, expected));
 }
 
 template<int N, int I> class NeuralLayer {
