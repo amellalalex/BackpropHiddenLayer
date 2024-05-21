@@ -611,3 +611,33 @@ int main(void) {
 *  OR in English:
 * ---- Weight correction = learning rate * local gradient * input signal i to neuron j
 */
+
+/**
+* A NOTE on the mysterious 'amnesia' I experienced in my C++ journey of ML :-)
+* 
+* Once upon a time...a C programmer was on a mission...to prove that they could
+* tame the beast that C++ was. They wrote their entire CS assignment for a mul-
+* ti-layer perceptron in C++. They were proud. Except for one little thing:
+*   - Every time they ran the program, it seemed like NONE of the learning
+*     was remembered by the network.
+* Attempting to debug and take a closer look revealed that weights were indeed
+* changing when called to learn and backpropagate. So what was going on?
+* 
+* Well, you see, the C programmer was used to typecasting when it was convenient.
+* After all, in C, typecasting is more of a hint to the compiler than anything else.
+* Sometimes it can be used cleverly to convert and manipulate datatypes in unusual 
+* ways.
+* 
+* But in C++ -- typecasting is an entirely different beast. And when it comes to
+* casting CLASSES in C++, it does something far more sinister than it did in C.
+* It doesn't just provide a hint to the compiler nor help the LSP resolve symbols,
+* it actually DISCONNECTS the underlying class type from the method call (thought
+* to be stored in persistent memory) and INSTEAD replaced with a temporary...or
+* something of that kind.
+* 
+* This meant that everytime the low-level, individual methods were tried for 
+* debugging, it worked as intended...but when the entire system was tried in 
+* its natural habitat, everything broke...
+* 
+* Let it be a staunch reminder and a warning: C++ TYPECASTING IS NOT FOR FUN.
+*/
