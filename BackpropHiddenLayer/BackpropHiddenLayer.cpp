@@ -360,7 +360,7 @@ template<int N, int I>
 Eigen::Matrix<float, N, I> NeuralLayer<N, I>::GetWeightss(void) const {
     Eigen::Matrix<float, N, I> weightss;
     for(int x = 0; x < this->neurons.size(); x++) {
-        weightss(x) = ((Perceptron<I>)this->neurons[x]).GetWeights();
+        weightss.row(x) = ((Perceptron<I>)this->neurons[x]).GetWeights();
     }
     return weightss;
 }
