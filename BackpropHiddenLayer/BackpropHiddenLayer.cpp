@@ -501,11 +501,28 @@ int main(void) {
     /* const int num_inputs = 3; */
     const int num_neurons = 3;
     const int num_layers = 3;
-    const float learning_rate = 0.3f;
+    const float learning_rate = 0.8f;
+    const int series_len = 5;
 
     /* Setup */
     Eigen::Vector<float, num_neurons> input = { 1, 0, 0 };
     Eigen::Vector<float, num_neurons> expected = { 0, 0, 1 };
+
+    /* Batch Setup */
+    Eigen::Matrix<float, series_len, num_neurons> inputs {
+        { 1, 0, 0 },
+        { 0, 1, 0 },
+        { 0, 0, 1 },
+        { 0, 1, 0 },
+        { 1, 0, 0 },
+    };
+    Eigen::Matrix<float, series_len, num_neurons> expecteds {
+        { 0, 0, 1 },
+        { 1, 0, 1 },
+        { 1, 0, 0 },
+        { 1, 0, 1 },
+        { 0, 0, 1 },
+    };
 
     /* Eval */
     NeuralNet<num_layers, num_neurons> NET;
@@ -514,12 +531,18 @@ int main(void) {
     std::cout << "NET.TotalErrorEnergyOf(input, expected) = " << std::endl << NET.TotalErrorEnergyOf(input, expected) << std::endl;
 
     /* Backprop */
-    for(;;) {
-        NET.BackpropWith(input, expected, learning_rate);
-        std::cout << "NET.BackpropWith(input, expected, learning_rate);" << std::endl;
-        std::cout << "NET.Evaluate(input) = " << std::endl << NET.Evaluate(input) << std::endl;
+    std::cout << "NET.Evaluate(input) = " << std::endl << NET.Evaluate(input) << std::endl;
+    std::cout << "BACKPROP START" << std::endl;
+    for(int x = 0; x < series_len; x++) {
+        Eigen::Vector<float, num_neurons> next_input = inputs.row(x);
+        Eigen::Vector<float, num_neurons> next_expected = expecteds.row(x);
+
+        NET.BackpropWith(next_input, next_expected, learning_rate);
+        std::cout << "NET.BackpropWith(next_input, next_expected, learning_rate);" << std::endl;
         (void)getc(stdin);
     }
+    std::cout << "BACKPROP END" << std::endl;
+    std::cout << "NET.Evaluate(input) = " << std::endl << NET.Evaluate(input) << std::endl;
 
     return 0;
 }
