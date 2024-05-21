@@ -490,7 +490,8 @@ template<int L, int N> void NeuralNet<L, N>::BackpropWith(
 int main(void) {
     /* const int num_inputs = 3; */
     const int num_neurons = 3;
-    const int num_layers = 40;
+    const int num_layers = 3;
+    const float learning_rate = 0.3f;
 
     /* Setup */
     Eigen::Vector<float, num_neurons> input = { 1, 0, 0 };
@@ -501,6 +502,14 @@ int main(void) {
     std::cout << "NET.Evaluate(input) = " << std::endl << NET.Evaluate(input) << std::endl;
     std::cout << "NET.ErrorOf(input, expected) = " << std::endl << NET.ErrorOf(input, expected) << std::endl;
     std::cout << "NET.TotalErrorEnergyOf(input, expected) = " << std::endl << NET.TotalErrorEnergyOf(input, expected) << std::endl;
+
+    /* Backprop */
+    for(;;) {
+        NET.BackpropWith(input, expected, learning_rate);
+        std::cout << "NET.BackpropWith(input, expected, learning_rate);" << std::endl;
+        std::cout << "NET.Evaluate(input) = " << std::endl << NET.Evaluate(input) << std::endl;
+        (void)getc(stdin);
+    }
 
     return 0;
 }
