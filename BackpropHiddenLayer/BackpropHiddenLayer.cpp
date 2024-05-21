@@ -9,6 +9,13 @@ float sigmoid(float x) {
     return 1.0f / (1.0f + std::exp(-x));
 }
 
+// Returns the instantaneous error energy xi_j(n)
+// for the neuron j having error value e_j(n)
+// \xi_j(n) = (1/2) * e_j(n)^2.
+float xi(float e) {
+    return 0.5f * std::powf(e, 2.0f);
+}
+
 // Perceptron<# Inputs>
 template<int I> class Perceptron {
 public:
