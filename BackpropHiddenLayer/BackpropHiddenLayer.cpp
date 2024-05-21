@@ -229,6 +229,11 @@ public:
         Eigen::Vector<float, N>& expecteds
     ) const;
 
+    void LearnWithExpected(
+        Eigen::Vector<float, I>& inputs, 
+        Eigen::Vector<float, N>& expecteds,
+        float learning_rate 
+    );
     Eigen::Vector<float, N> GetLocalGradientsAsOutput(
         Eigen::Vector<float, I>& inputs,
         Eigen::Vector<float, N>& expecteds
@@ -276,6 +281,21 @@ float NeuralLayer<N, I>::TotalErrorEnergyOf(
         sum += ((Perceptron<I>) this->neurons[x]).ErrorEnergyOf(inputs, expecteds(x));
     }
     return sum;
+}
+
+template<int N, int I>
+void NeuralLayer<N,I>::LearnWithExpected(
+    Eigen::Vector<float, I>& inputs, 
+    Eigen::Vector<float, N>& expecteds,
+    float learning_rate 
+) {
+    for(int x = 0; x < this->neurons.size(); x++) {
+        ((Perceptron<I>)this->neurons[x]).LearnWithExpected(
+            inputs,
+            expecteds(x),
+            learning_rate
+        );
+    }
 }
 
 template<int N, int I>
