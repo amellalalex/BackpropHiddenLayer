@@ -190,19 +190,6 @@ int main(void) {
     std::cout << "NET.ErrorOf(input, expected) = " << std::endl << NET.ErrorOf(input, expected) << std::endl;
     std::cout << "NET.TotalErrorEnergyOf(input, expected) = " << std::endl << NET.TotalErrorEnergyOf(input, expected) << std::endl;
 
-    /* Sigmoid Dumps */
-    std::cout << "Sigmoid Dump Begin:" << std::endl;
-    for(float x = -5.0f; x < 5.0f; x += 0.1f) {
-        std::cout << "sigmoid(" << x << ") = " << sigmoid(x) << std::endl;
-    }
-    std::cout << "Sigmoid Dump End." << std::endl << std::endl;
-
-    std::cout << "Sigmoid Prime Dump Begin:" << std::endl;
-    for(float x = -5.0f; x < 5.0f; x += 0.1f) {
-        std::cout << "sigmoid_prime(" << x << ") = " << sigmoid_prime(x) << std::endl;
-    }
-    std::cout << "Sigmoid Prime Dump End." << std::endl << std::endl;
-
     return 0;
 }
 
