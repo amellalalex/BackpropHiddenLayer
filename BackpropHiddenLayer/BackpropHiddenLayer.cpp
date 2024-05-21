@@ -146,6 +146,15 @@ int main(void) {
 * -- Lastly, 'learning' is applied via back-propagation following a stochastic
 *    model of gradient descent -- in other words, the estimated instantaneous
 *    variation in the cost function with respect to the paramters being adjusted.
-* 
-* 
+* --- In actual English, the weight adjustment for each neuron needs to be calculated
+*     and applied based on the _learning rate_, the error e_k(n) and the input x_j(n)
+* --- *** NOTE: This is ONLY actually true of the visible output layer -- and true
+*               exclusively when there is only one layer to the entire network.
+* --- Error back-propagation learning requires every neuron in the network to do 2 things:
+* ---- 1. The computation of the function signal appearing at the output of the neuron
+*         being the application of the continuous non-linear function of the input signal
+*         and the synaptics weights associated with that particular neuron
+* ---- 2. The computed estimate of a gradient vector being the gradient of the error
+*         surface with respect to the weights connected to the input of the neuron.
+*         This is necessary for the backward-pass through the network (and weight updates).
 */
