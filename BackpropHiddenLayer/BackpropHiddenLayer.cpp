@@ -142,7 +142,7 @@ private:
 template<int L, int N> 
 Eigen::Vector<float, N> NeuralNet<L, N>::Evaluate(
     Eigen::Vector<float, N>& inputs
-) {
+) const {
     Eigen::Vector<float, N> next_input = inputs;
     for (int x = 0; x < this->layers.size(); x++) {
         next_input = this->layers[x].Evaluate(next_input);
@@ -156,7 +156,7 @@ template<int L, int N>
 Eigen::Vector<float, N> NeuralNet<L, N>::ErrorOf(
     Eigen::Vector<float, N>& inputs,
     Eigen::Vector<float, N>& expecteds
-) {
+) const {
     return (expecteds - this->Evaluate(inputs));
 }
 
@@ -166,13 +166,9 @@ template<int L, int N>
 float NeuralNet<L, N>::TotalErrorEnergyOf(
     Eigen::Vector<float, N>& inputs,
     Eigen::Vector<float, N>& expecteds
-) {
-    if (this->layers.size() > 0) {
-        return ((NeuralLayer<N, N>)this->layers.back()).TotalErrorEnergyOf(inputs, expecteds);
-    }
-    else {
-        return 0.0f;
-    }
+) const {
+    return ((NeuralLayer<N, N>)this->layers.back()).TotalErrorEnergyOf(inputs, expecteds);
+    /* There will always be at least 1 layer due to static assertion in class def */
 }
 
 int main(void) {
