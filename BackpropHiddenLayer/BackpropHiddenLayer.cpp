@@ -46,11 +46,48 @@ public:
 
 private:
     Eigen::Vector<float, I> weights;
+
     float sum_of_products(Eigen::Vector<float, I>& inputs) const; // AKA v(n)
+
+    float local_gradient(Eigen::Vector<float, I>& inputs, float expected) const;
+    float local_gradient(
+            Eigen::Vector<float, I>& inputs, 
+            float k_local_gradient,
+            Eigen::Vector<float, I>& k_weights
+    ) const;
 };
 
 template<int I> float Perceptron<I>::sum_of_products(Eigen::Vector<float, I>& inputs) const {
     return inputs.dot(weights);
+}
+
+template<int I> float Perceptron<I>::local_gradient(
+    Eigen::Vector<float, I>& inputs, 
+    float expected
+) const {
+    return 
+        this->ErrorOf(inputs, expected) 
+            * sigmoid_prime(this->sum_of_products(inputs))
+        ;
+}
+
+template<int I> float Perceptron<I>::local_gradient(
+    Eigen::Vector<float, I>& inputs, 
+    float k_local_gradient,
+    Eigen::Vector<float, I>& k_weights
+) const {
+
+    /* Compute SUM OF ( \delta_k(n) * w_k_j(n) ) */
+    float sum_of_k_local_gradient_and_weights = 0.0f;
+    for(int x = 0; x < k_weights.cols(); x++) {
+        sum_of_k_local_gradient_and_weights += k_local_gradient * k_weights(x);
+    }
+
+    /* Return local gradient */
+    return
+        sigmoid_prime(this->sum_of_products(inputs))
+            * sum_of_k_local_gradient_and_weights
+        ;
 }
 
 // Randomly initializes the weights of the perceptron
@@ -98,9 +135,7 @@ void Perceptron<I>::LearnWithExpected(
     float learning_rate 
 ) {
     /* Start with local gradient */
-    float local_gradient = 
-        this->ErrorOf(inputs, expected) 
-            * sigmoid_prime(this->sum_of_products(inputs));
+    float local_gradient = this->local_gradient(inputs, expected);
 
     /* Calculate weight corrections */
     Eigen::Vector<float, I> weight_corrections;
@@ -126,16 +161,10 @@ void Perceptron<I>::LearnWithBackprop(
     float                    k_local_gradient,
     Eigen::Vector<float, I>& k_weights
 ) {
-    /* Compute SUM OF ( \delta_k(n) * w_k_j(n) ) */
-    float sum_of_k_local_gradient_and_weights = 0.0f;
-    for(int x = 0; x < k_weights.cols(); x++) {
-        sum_of_k_local_gradient_and_weights += k_local_gradient * k_weights(x);
-    }
 
     /* Compute local gradient */
     float local_gradient = 
-        sigmoid_prime(this->sum_of_products(inputs))
-            * sum_of_k_local_gradient_and_weights
+        this->local_gradient(inputs, k_local_gradient, k_weights)
         ;
 
     /* Calculate weight corrections */
