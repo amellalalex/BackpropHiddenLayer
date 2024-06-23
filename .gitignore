@@ -4,3 +4,7 @@
 
 /out/build/x64-debug
 /.vs
+/BackpropHiddenLayer/a.out
+/BackpropHiddenLayer/NeuralLayer.hpp.gch
+/BackpropHiddenLayer/NeuralNet.hpp.gch
+/BackpropHiddenLayer/Perceptron.hpp.gch
