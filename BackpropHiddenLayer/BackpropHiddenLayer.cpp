@@ -1,490 +1,86 @@
 ﻿// BackpropHiddenLayer.cpp : Defines the entry point for the application.
 //
 
+// Standard C Libraries
+#include <cstdio>
+
+// Standard C++ Libraries
 #include <iostream>
+#include <fstream>
+#include <array>
+
+// External Dependencies
 #include <Eigen/Dense>
 
-// Returns the sigmoid function value \phi(x)
-float sigmoid(float x) {
-    return 1.0f / (1.0f + std::exp(-x));
-}
+// Project Headers
+#include "NeuralNet.hpp"
 
-float sigmoid_prime(float x) {
-    return (std::exp(-x) / std::pow( 1.0f + std::exp(-x) , 2.0f));
-}
+Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> 
+load_iris(const char *path) {
+    // Settings
+    const int num_cols = 3;
 
-// Returns the instantaneous error energy xi_j(n)
-// for the neuron j having error value e_j(n)
-// \xi_j(n) = (1/2) * e_j(n)^2.
-float xi(float e) {
-    return 0.5f * std::powf(e, 2.0f);
-}
+    std::ifstream file(path);
+    std::string line;
 
-// Perceptron<# Inputs>
-template<int I> class Perceptron {
-    static_assert(I > 0, "Invalid Perceptron # of Inputs");
-public:
-    Perceptron(void);
+    size_t  num_lines;
+    float   a,b,c;
+    int     class_num;
 
-    float Evaluate(Eigen::Vector<float, I>& inputs) const;
-    float ErrorOf(Eigen::Vector<float, I>& inputs, float expected) const;
-    float ErrorEnergyOf(Eigen::Vector<float, I>& inputs, float expected) const;
+    // Get number of lines in file data 
+    num_lines = 0;
+    while(std::getline(file, line)) {
+        ++num_lines;
+    }
+    
+    // DEBUG
+    std::cout << "num_lines = " << num_lines << std::endl;
 
-    void LearnWithExpected(
-        Eigen::Vector<float, I>& inputs, 
-        float expected,
-        float learning_rate 
-    );
-    void LearnWithBackprop(
-        Eigen::Vector<float, I>& inputs,
-        float                    learning_rate,
-        float                    k_local_gradient,
-        Eigen::Vector<float, I>& k_weights
-    );
+    // Reset file pointer
+    file.clear();
+    file.seekg(0);
 
-    float GetLocalGradientAsOutput(
-            Eigen::Vector<float, I>& inputs, 
-            float expected
-    ) const;
-    float GetLocalGradientForBackprop(
-            Eigen::Vector<float, I>& inputs,
-            float k_local_gradient,
-            Eigen::Vector<float, I>& k_weights
-    ) const;
+    // Create dynamic matrix per data size
+    Eigen::MatrixX<float> iris_data_in(num_lines, num_cols);
+    Eigen::MatrixX<int> iris_data_keys(num_lines, num_cols);
+    
+    // Read iris data into matrix
+    for(size_t x = 0; std::getline(file, line); ++x) {
+        std::sscanf(line.c_str(), "%3f,%3f,%3f,%1d", &a, &b, &c, &class_num);
 
-    Eigen::Vector<float, I> GetWeights(void) const;
+        // DEBUG 
+        std::cout << "a = " << a << ", b = " << b << ", c = " << c << ", class_num = " << class_num << std::endl;
 
-private:
-    Eigen::Vector<float, I> weights;
+        // Set instance inputs
+        iris_data_in(x, 0) = a;
+        iris_data_in(x, 1) = b;
+        iris_data_in(x, 2) = c;
 
-    float sum_of_products(Eigen::Vector<float, I>& inputs) const; // AKA v(n)
-
-    float local_gradient(Eigen::Vector<float, I>& inputs, float expected) const;
-    float local_gradient(
-            Eigen::Vector<float, I>& inputs, 
-            float k_local_gradient,
-            Eigen::Vector<float, I>& k_weights
-    ) const;
-};
-
-template<int I> float Perceptron<I>::sum_of_products(Eigen::Vector<float, I>& inputs) const {
-    return inputs.dot(weights);
-}
-
-template<int I> float Perceptron<I>::local_gradient(
-    Eigen::Vector<float, I>& inputs, 
-    float expected
-) const {
-    return 
-        this->ErrorOf(inputs, expected) 
-            * sigmoid_prime(this->sum_of_products(inputs))
-        ;
-}
-
-template<int I> float Perceptron<I>::local_gradient(
-    Eigen::Vector<float, I>& inputs, 
-    float k_local_gradient,
-    Eigen::Vector<float, I>& k_weights
-) const {
-
-    /* Compute SUM OF ( \delta_k(n) * w_k_j(n) ) */
-    float sum_of_k_local_gradient_and_weights = 0.0f;
-    for(int x = 0; x < k_weights.cols(); x++) {
-        sum_of_k_local_gradient_and_weights += k_local_gradient * k_weights(x);
+        // Set instance output class key (one hot)
+        switch(class_num) {
+        case 0:
+            iris_data_keys(x, 0) = 1;
+            iris_data_keys(x, 1) = 0;
+            iris_data_keys(x, 2) = 0;
+            break;
+        case 1:
+            iris_data_keys(x, 0) = 0;
+            iris_data_keys(x, 1) = 1;
+            iris_data_keys(x, 2) = 0;
+            break;
+        case 2:
+            iris_data_keys(x, 0) = 0;
+            iris_data_keys(x, 1) = 0;
+            iris_data_keys(x, 2) = 1;
+            break;
+        }
     }
 
-    /* Return local gradient */
-    return
-        sigmoid_prime(this->sum_of_products(inputs))
-            * sum_of_k_local_gradient_and_weights
-        ;
-}
+    // DEBUG
+    std::cout << "Iris Values = " << std::endl << iris_data_in << std::endl;
+    std::cout << "Iris Keys = " << std::endl << iris_data_keys << std::endl;
 
-// Randomly initializes the weights of the perceptron
-template<int I> Perceptron<I>::Perceptron(void) {
-    srand(time(NULL) + rand());
-    this->weights.setRandom();
-}
-
-// 'Excites' neuron using fitting input vector.
-// Passes output through activation function (sigmoid).
-// Returns neuron's scalar output value.
-template<int I> float Perceptron<I>::Evaluate(Eigen::Vector<float, I>& inputs) const {
-    return sigmoid(this->sum_of_products(inputs));
-}
-
-// Computes the error of the evaluated input WRT the
-// expected value. e_k(n) = d_k(n) - y_k(n).
-template<int I> float Perceptron<I>::ErrorOf(
-    Eigen::Vector<float, I>& inputs, 
-    float expected
-) const {
-    return (expected - this->Evaluate(inputs));
-}
-
-// Computes the instantaneous error energy of the
-// evaluated input WRT the expected value.
-// \xi_j(n) = (1/2) * e_j(n)^2.
-template<int I> 
-float Perceptron<I>::ErrorEnergyOf(
-    Eigen::Vector<float, I>& inputs, float expected
-) const {
-    return xi(this->ErrorOf(inputs, expected));
-}
-
-// Applies weight changes to this neuron by 
-// locally calculating the error based on 
-// the expected value and the evaluated 
-// inputs, factoring in the provided learning
-// rate in the process.
-// \Delta w_j_i(n) = \eta * \delta_j(n) * y_i(n)
-template<int I>
-void Perceptron<I>::LearnWithExpected(
-    Eigen::Vector<float, I>& inputs, 
-    float expected,
-    float learning_rate 
-) {
-    /* Start with local gradient */
-    float local_gradient = this->local_gradient(inputs, expected);
-
-    /* Calculate weight corrections */
-    Eigen::Vector<float, I> weight_corrections;
-    for(int x = 0; x < inputs.size(); x++) {
-        weight_corrections(x) = learning_rate * local_gradient * inputs(x);
-    }
-
-    /* Apply weight corrections */
-    this->weights += weight_corrections;
-}
-
-// Applies weight changes to this neuron by 
-// deriving the local gradient from the k neuron
-// 'ahead' of it, using its k_local_gradient and
-// k_weights as it would be done if this neuron
-// were part of a hidden layer. Using the local
-// gradient, weight updates are applied provided
-// the inputs to this neuron.
-template<int I>
-void Perceptron<I>::LearnWithBackprop(
-    Eigen::Vector<float, I>& inputs,
-    float                    learning_rate,
-    float                    k_local_gradient,
-    Eigen::Vector<float, I>& k_weights
-) {
-
-    /* Compute local gradient */
-    float local_gradient = 
-        this->local_gradient(inputs, k_local_gradient, k_weights)
-        ;
-
-    /* Calculate weight corrections */
-    Eigen::Vector<float, I> weight_corrections;
-    for(int x = 0; x < inputs.size(); x++) {
-        weight_corrections(x) = learning_rate * local_gradient * inputs(x);
-    }
-
-    /* Apply weight corrections */
-    this->weights += weight_corrections;
-}
-
-// Computes the local gradient at this neuron ASSUMING
-// it belongs to the output layer of the Network.
-template<int I>
-float Perceptron<I>::GetLocalGradientAsOutput(
-        Eigen::Vector<float, I>& inputs, 
-        float expected
-) const {
-    return this->local_gradient(inputs, expected);
-}
-
-template<int I>
-float Perceptron<I>::GetLocalGradientForBackprop(
-        Eigen::Vector<float, I>& inputs,
-        float k_local_gradient,
-        Eigen::Vector<float, I>& k_weights
-) const {
-    return this->local_gradient(inputs, k_local_gradient, k_weights);
-}
-
-template<int I>
-Eigen::Vector<float, I> Perceptron<I>::GetWeights(void) const {
-    return this->weights;
-}
-
-template<int N, int I> class NeuralLayer {
-    static_assert(
-        N > 0 && I > 0, 
-        "Invalid NeuralLayer # of Neurons OR # of Inputs"
-    );
-public:
-    Eigen::Vector<float, N> Evaluate(Eigen::Vector<float, I>& inputs) const;
-
-    Eigen::Vector<float, N> ErrorOf(
-        Eigen::Vector<float, I>& inputs, 
-        Eigen::Vector<float, N>& expecteds
-    ) const;
-
-    float TotalErrorEnergyOf(
-        Eigen::Vector<float, I>& inputs,
-        Eigen::Vector<float, N>& expecteds
-    ) const;
-
-    void LearnWithExpected(
-        Eigen::Vector<float, I>& inputs, 
-        Eigen::Vector<float, N>& expecteds,
-        float learning_rate 
-    );
-    void LearnWithBackprop(
-        Eigen::Vector<float, I>&    inputs,
-        float                       learning_rate,
-        Eigen::Vector<float, N>&    k_local_gradients,
-        Eigen::Matrix<float, N, I>& k_weightss
-    );
-
-    Eigen::Vector<float, N> GetLocalGradientsAsOutput(
-        Eigen::Vector<float, I>& inputs,
-        Eigen::Vector<float, N>& expecteds
-    ) const;
-
-    Eigen::Vector<float, N> GetLocalGradientsForBackprop(
-        Eigen::Vector<float, I>& inputs,
-        Eigen::Vector<float, N>& k_local_gradients,
-        Eigen::Matrix<float, N, I> k_weightss
-    ) const;
-
-    Eigen::Matrix<float, N, I> GetWeightss(void) const;
-
-private:
-    std::array<Perceptron<I>, N> neurons;
-};
-
-// NeuralLayer<# of Neurons, # of Inputs/Neuron>
-template<int N, int I>
-Eigen::Vector<float, N> NeuralLayer<N, I>::Evaluate(
-    Eigen::Vector<float, I>& inputs
-) const {
-    Eigen::Vector<float, N> outputs;
-    for (int x = 0; x < this->neurons.size(); x++) {
-        outputs(x) = this->neurons[x].Evaluate(inputs);
-    }
-    return outputs;
-}
-
-template<int N, int I>
-Eigen::Vector<float, N> NeuralLayer<N, I>::ErrorOf(
-    Eigen::Vector<float, I>& inputs,
-    Eigen::Vector<float, N>& expecteds
-) const {
-    return (expecteds - this->Evaluate(inputs));
-}
-
-template<int N, int I>
-float NeuralLayer<N, I>::TotalErrorEnergyOf(
-    Eigen::Vector<float, I>& inputs,
-    Eigen::Vector<float, N>& expecteds
-) const {
-    float sum = 0;
-    for (int x = 0; x < this->neurons.size(); x++) {
-        sum += this->neurons[x].ErrorEnergyOf(inputs, expecteds(x));
-    }
-    return sum;
-}
-
-template<int N, int I>
-void NeuralLayer<N,I>::LearnWithExpected(
-    Eigen::Vector<float, I>& inputs, 
-    Eigen::Vector<float, N>& expecteds,
-    float learning_rate 
-) {
-    for(int x = 0; x < this->neurons.size(); x++) {
-        this->neurons[x].LearnWithExpected(
-            inputs,
-            expecteds(x),
-            learning_rate
-        );
-    }
-}
-
-template<int N, int I>
-void NeuralLayer<N,I>::LearnWithBackprop(
-    Eigen::Vector<float, I>&    inputs,
-    float                       learning_rate,
-    Eigen::Vector<float, N>&    k_local_gradients,
-    Eigen::Matrix<float, N, I>& k_weightss
-) {
-    for(int x = 0; x < this->neurons.size(); x++) {
-        /* Get k_weights for this neuron */
-        Eigen::Vector<float, I> k_weights = k_weightss.row(x);
-        /* Apply backprop learning to this layer */
-        this->neurons[x].LearnWithBackprop(
-            inputs,
-            learning_rate,
-            k_local_gradients(x),
-            k_weights
-        );
-    }
-}
-
-template<int N, int I>
-Eigen::Vector<float, N> NeuralLayer<N, I>::GetLocalGradientsAsOutput(
-    Eigen::Vector<float, I>& inputs,
-    Eigen::Vector<float, N>& expecteds
-) const {
-    Eigen::Vector<float, N> local_gradients;
-    for(int x = 0; x < this->neurons.size(); x++) {
-        local_gradients(x) = 
-            this->neurons[x].GetLocalGradientAsOutput(
-                inputs, 
-                expecteds(x)
-            );
-    }
-    return local_gradients;
-}
-
-template<int N, int I>
-Eigen::Vector<float, N> NeuralLayer<N, I>::GetLocalGradientsForBackprop(
-    Eigen::Vector<float, I>& inputs,
-    Eigen::Vector<float, N>& k_local_gradients,
-    Eigen::Matrix<float, N, I> k_weightss
-) const {
-    Eigen::Vector<float, N> local_gradients;
-    for(int x = 0; x < this->neurons.size(); x++) {
-        /* Get k_weights for this neurons */
-        Eigen::Vector<float, I> k_weights = k_weightss.row(x);
-        /* Get local gradients for this layer */
-        local_gradients(x) = 
-            this->neurons[x].GetLocalGradientForBackprop(
-                inputs,
-                k_local_gradients(x),
-                k_weights
-            );
-    }
-    return local_gradients;
-}
-
-template<int N, int I> 
-Eigen::Matrix<float, N, I> NeuralLayer<N, I>::GetWeightss(void) const {
-    Eigen::Matrix<float, N, I> weightss;
-    for(int x = 0; x < this->neurons.size(); x++) {
-        weightss.row(x) = this->neurons[x].GetWeights();
-    }
-    return weightss;
-}
-
-// template <# of layers, # of Neurons/Layer>
-// NOTE: # of Neurons/Layer == # of Inputs/Neuron
-template<int L, int N> class NeuralNet {
-    static_assert(
-        L > 0 && N > 0, 
-        "Invalid NeuralNet # of Layers OR # of Neurons"
-    );
-public:
-    Eigen::Vector<float, N> Evaluate(Eigen::Vector<float, N>& inputs) const;
-
-    Eigen::Vector<float, N> ErrorOf(
-        Eigen::Vector<float, N>& inputs,
-        Eigen::Vector<float, N>& expecteds
-    ) const;
-
-    float TotalErrorEnergyOf(
-        Eigen::Vector<float, N>& inputs,
-        Eigen::Vector<float, N>& expecteds
-    ) const;
-
-    void BackpropWith(
-        Eigen::Vector<float, N>& inputs,
-        Eigen::Vector<float, N>& expecteds,
-        float learning_rate
-    );
-
-private:
-    std::array<NeuralLayer<N, N>, L> layers;
-};
-
-template<int L, int N> 
-Eigen::Vector<float, N> NeuralNet<L, N>::Evaluate(
-    Eigen::Vector<float, N>& inputs
-) const {
-    Eigen::Vector<float, N> next_input = inputs;
-    for (int x = 0; x < this->layers.size(); x++) {
-        next_input = this->layers[x].Evaluate(next_input);
-    }
-    /* next_input is now the output of the last layer in the net */
-
-    return next_input;
-}
-
-template<int L, int N>
-Eigen::Vector<float, N> NeuralNet<L, N>::ErrorOf(
-    Eigen::Vector<float, N>& inputs,
-    Eigen::Vector<float, N>& expecteds
-) const {
-    return (expecteds - this->Evaluate(inputs));
-}
-
-// Returns the total instantaneous error energy
-// of the _output layer_ of the network.
-template<int L, int N>
-float NeuralNet<L, N>::TotalErrorEnergyOf(
-    Eigen::Vector<float, N>& inputs,
-    Eigen::Vector<float, N>& expecteds
-) const {
-    return this->layers.back().TotalErrorEnergyOf(inputs, expecteds);
-    /* There will always be at least 1 layer due to static assertion in class def */
-}
-
-template<int L, int N> void NeuralNet<L, N>::BackpropWith(
-        Eigen::Vector<float, N>& inputs,
-        Eigen::Vector<float, N>& expecteds,
-        float learning_rate
-) {
-    /* Save output layer characteristics */
-
-    Eigen::Vector<float, N> k_local_gradients = 
-        this->layers.back().GetLocalGradientsAsOutput(
-            inputs,
-            expecteds
-        );
-
-    Eigen::Matrix<float, N, N> k_weightss = 
-        this->layers.back().GetWeightss();
-
-    /* Apply Corrections to Output Layer */
-    this->layers.back().LearnWithExpected(
-        inputs,
-        expecteds,
-        learning_rate
-    );
-
-    /* For remaining layers, apply backprop */
-    Eigen::Vector<float, N> next_local_gradients = k_local_gradients;
-    Eigen::Matrix<float, N, N> next_weightss = k_weightss;
-    /* Treat k_*** as values to apply for x'th iteration */
-    /* Treat next_*** as persistence state for (x+1)'th */
-
-    /* Note that we are excluding the output layer */
-    for(int x = this->layers.size()-2; x >= 0; x--) {
-        /* Save current layer's characteristics */
-        next_local_gradients = 
-            this->layers[x].GetLocalGradientsForBackprop(
-                inputs,
-                k_local_gradients,
-                k_weightss
-            );
-        next_weightss = this->layers[x].GetWeightss();
-
-        /* Apply corrections using backprop */
-        this->layers[x].LearnWithBackprop(
-            inputs,
-            learning_rate,
-            k_local_gradients,
-            k_weightss
-        );
-
-        /* Update x'th iteration characteristics */
-        k_local_gradients = next_local_gradients;
-        k_weightss = next_weightss;
-    }
+    return iris_data_in;
 }
 
 int main(void) {
@@ -533,6 +129,9 @@ int main(void) {
     }
     std::cout << "BACKPROP END" << std::endl;
     std::cout << "NET.Evaluate(input) = " << std::endl << NET.Evaluate(input) << std::endl;
+
+    // DEBUG 
+    load_iris("iris.data");
 
     return 0;
 }
