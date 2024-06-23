@@ -1,0 +1,13 @@
+For the C++ Submission, need:
+
+1. Training set accuracy (re-feed training data, check accuracy)
+2. Test set accuracy (feed a test-specific dataset, check accuracy)
+3. Mystery set accuracy (feed a second, test-specific dataset, check accuracy)
+
+*. Wait to receive mystery data set
+**. Accuracy = (Number of hits) / (Total evaluations)
+***. A hit is when the strongest signal matches the classifier
+
+-> Generalization trade-off, more bias, less variance and vice versa
+--> This applies when the net is over-trained on the training set
+        Performs worse on the test set.
